@@ -13,6 +13,7 @@ using std::string;
 constexpr double pi() { return M_PI; }
 double deg2rad(double x) { return x * pi() / 180; }
 double rad2deg(double x) { return x * 180 / pi(); }
+double mph2mps(double x) { return x / 2.237; }
 
 // Checks if the SocketIO event has JSON data.
 // If there is data the JSON object in string format will be returned,
@@ -33,13 +34,17 @@ string hasData(string s) {
 int main() {
   uWS::Hub h;
 
-  PID pid;
+  PID pid_s;
+  PID pid_v;
   /**
    * TODO: Initialize the pid variable.
    */
+  // Kp, Ki, Kd, forgetting factor
+  pid_s.Init(0.02, 0.02, 2.0, 0.9);
+  pid_v.Init(0.5, 0.0, 0.05, 0.9999);
 
-  h.onMessage([&pid](uWS::WebSocket<uWS::SERVER> ws, char *data, size_t length, 
-                     uWS::OpCode opCode) {
+  h.onMessage([&pid_s,&pid_v](uWS::WebSocket<uWS::SERVER> ws, char *data, size_t length, 
+                              uWS::OpCode opCode) {
     // "42" at the start of the message means there's a websocket message event.
     // The 4 signifies a websocket message
     // The 2 signifies a websocket event
@@ -56,13 +61,22 @@ int main() {
           double cte = std::stod(j[1]["cte"].get<string>());
           double speed = std::stod(j[1]["speed"].get<string>());
           double angle = std::stod(j[1]["steering_angle"].get<string>());
-          double steer_value;
           /**
            * TODO: Calculate steering value here, remember the steering value is
            *   [-1, 1].
            * NOTE: Feel free to play around with the throttle and speed.
            *   Maybe use another PID controller to control the speed!
            */
+          pid_s.UpdateError(cte);
+          double steer_value = -pid_s.TotalError();
+          if (steer_value > 1.0) steer_value = 1.0;
+          else if (steer_value < -1.0) steer_value = -1.0;
+
+          double target_speed = 30.0;
+          pid_v.UpdateError(target_speed - speed);
+          double throttle = pid_v.TotalError();
+          if (throttle > 1.0) throttle = 1.0;
+          else if (throttle < -1.0) throttle = -1.0;
           
           // DEBUG
           std::cout << "CTE: " << cte << " Steering Value: " << steer_value 
@@ -70,7 +84,7 @@ int main() {
 
           json msgJson;
           msgJson["steering_angle"] = steer_value;
-          msgJson["throttle"] = 0.3;
+          msgJson["throttle"] = throttle;
           auto msg = "42[\"steer\"," + msgJson.dump() + "]";
           std::cout << msg << std::endl;
           ws.send(msg.data(), msg.length(), uWS::OpCode::TEXT);

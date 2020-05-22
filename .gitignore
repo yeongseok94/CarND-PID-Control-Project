@@ -2,3 +2,5 @@
 build
 tags
 .editorconfig
+term2_sim.x86_64
+term2_sim_Data

@@ -15,9 +15,9 @@ class PID {
 
   /**
    * Initialize PID.
-   * @param (Kp_, Ki_, Kd_) The initial PID coefficients
+   * @param (Kp_, Ki_, Kd_, forget_) The initial PID coefficients & forgetting factor
    */
-  void Init(double Kp_, double Ki_, double Kd_);
+  void Init(double Kp_, double Ki_, double Kd_, double forget);
 
   /**
    * Update the PID error variables given cross track error.
@@ -35,16 +35,19 @@ class PID {
   /**
    * PID Errors
    */
-  double p_error;
-  double i_error;
-  double d_error;
+  double p_error = 0.0;
+  double i_error = 0.0;
+  double d_error = 0.0;
 
   /**
    * PID Coefficients
    */ 
-  double Kp;
-  double Ki;
-  double Kd;
+  double Kp = 0.0;
+  double Ki = 0.0;
+  double Kd = 0.0;
+  double forget = 0.0;
+
+  double totalerror = 0.0;
 };
 
 #endif  // PID_H
