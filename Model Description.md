@@ -30,6 +30,13 @@ Final selection of PID gains and the forgetting factor is:
 * Kd = 2.0
 * forgetting factor = 0.9
 
+Meanwhile, I used another PID controller to throttle so that I can control the speed of the vehicle. And the PID gains and the forgetting factor for it is:
+
+* Kp = 0.5
+* Ki = 0.0
+* Kd = 0.05
+* forgetting factor = 0.9999
+
 ### Gain Tuning Procedure
 
 1. First, select proper Kp that makes the car follow the track even though it has a lot of oscillation.
